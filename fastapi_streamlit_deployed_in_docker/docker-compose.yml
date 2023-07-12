@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+
+  backend:
+    build: fastapi_backend
+    ports:
+      - 8000:8000
+    networks:
+      - deploy_network
+    container_name: fastapi
+  
+  frontend:
+    build: streamlit_frontend
+    ports:
+      - 8501:8501
+    networks:
+      - deploy_network
+    depends_on:
+      - backend
+    container_name: streamlit
+
+networks:
+  deploy_network:
+    driver: bridge
