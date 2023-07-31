@@ -31,7 +31,7 @@ def download_from_yfinance(first_date, last_date, companies):
     # download data with yfinance
     data = yf.download(companies, start=first_date, end=last_date)
     
-    # load data into postgresql tables 
+    # save data into temp files  
     for company in companies.split(' '):
         df = extract_table(data, company)
         df.to_csv(f'/tmp/{company}.csv', index = None, header = False )

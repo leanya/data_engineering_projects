@@ -15,7 +15,7 @@ def store_tables():
         cur.copy_expert(SQL_STATEMENT, f)
         conn.commit()
 
-    companies = companies = "AAPL SPY"
+    companies =  "AAPL SPY"
     for company in companies.split(' '):
         SQL_STATEMENT = f"COPY {company.lower()} FROM stdin WITH DELIMITER as ','"
         with open(f'/tmp/{company}.csv', 'r') as f:
