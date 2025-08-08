@@ -1,80 +1,105 @@
-# Create tables in postgresql 
-# Fact tables and Dimension tables (datetime)
+# Create tables in PostgreSQL
+# Fact table and Dimension tables
 
 table_drop = "DROP TABLE IF EXISTS {}"
 
-table_create = ("""
+fact_table_create = ("""
 
 CREATE TABLE {table} (
-    date Timestamp NOT NULL,
+    date TIMESTAMP NOT NULL,
+    ticker_id INTEGER NOT NULL,
     open REAL NOT NULL, 
     high REAL NOT NULL, 
     low REAL NOT NULL, 
     close REAL NOT NULL,
-    adjclose REAL NOT NULL,
-    volume Integer NOT NULL,
-    CONSTRAINT {constraint} PRIMARY KEY (date),
-    FOREIGN KEY (date) REFERENCES {date_table} (date)
+    volume INTEGER NOT NULL,
+    CONSTRAINT pk_date_ticker PRIMARY KEY (date, ticker_id),
+    FOREIGN KEY (date) REFERENCES {date_table} (date),
+    FOREIGN KEY (ticker_id) REFERENCES {ticker_table} (ticker_id)
 );
 
 """)
                 
-date_table_create = ("""
+dim_date_table_create = ("""
 
-CREATE TABLE {table}(
-    date Timestamp NOT NULL,
+CREATE TABLE {table} (
+    date TIMESTAMP NOT NULL,
     year INTEGER NOT NULL,
     month INTEGER NOT NULL,
     dayofweek VARCHAR(10),
-    CONSTRAINT date_key PRIMARY KEY (date)
+    CONSTRAINT pk_date PRIMARY KEY (date)
 )
 """)
-                     
+
+dim_ticker_table_create = ("""
+
+CREATE TABLE {table} (
+    ticker_id SERIAL,
+    ticker_symbol VARCHAR(10) NOT NULL,
+    CONSTRAINT pk_ticker PRIMARY KEY (ticker_id)
+)
+""")
+
+# Incremental Data Loading 
+
+fact_temptable_create = ("""
+
+CREATE TEMPORARY TABLE {table} (
+    date TIMESTAMP NOT NULL,
+    ticker_id INTEGER NOT NULL,
+    open REAL NOT NULL, 
+    high REAL NOT NULL, 
+    low REAL NOT NULL, 
+    close REAL NOT NULL,
+    volume INTEGER NOT NULL,
+    CONSTRAINT pk_date_ticker PRIMARY KEY (date, ticker_id),
+    FOREIGN KEY (date) REFERENCES {date_table} (date)
+);
+
+""")
+
+dim_tempdate_create = ("""
+
+CREATE TEMPORARY TABLE {table} (
+    date TIMESTAMP NOT NULL,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    dayofweek VARCHAR(10),
+    CONSTRAINT pk_date PRIMARY KEY (date)
+)
+""")
+
 merge_table_stock = ("""
 
-MERGE INTO {table} source 
-USING tempstock temp
-    ON source.date = temp.date
-
-/* new records */
+MERGE INTO public.fact_stock_price AS source 
+USING public.tempstock AS temp
+    ON source.date = temp.date AND source.ticker_id = temp.ticker_id
 WHEN NOT MATCHED THEN
-    INSERT (date, open, high, low, close, adjclose, volume) 
-    VALUES (temp.date, temp.open, temp.high, temp.low, temp.close, temp.adjclose, temp.volume)
-
-/* matching records ('inner match') */
+    INSERT (date, ticker_id, open, high, low, close, volume) 
+    VALUES (temp.date, temp.ticker_id, temp.open, temp.high, temp.low, temp.close, temp.volume)
 WHEN MATCHED THEN 
-    UPDATE SET open = temp.open, 
+    UPDATE SET 
+    open = temp.open, 
     high = temp.high, 
     low = temp.low, 
     close = temp.close, 
-    adjclose = temp.adjclose , 
-    volume= temp.volume
-;
-
-/* CREATE INDEX stock_index ON {table} (date); */
-
+    volume= temp.volume;
+                     
 """) 
 
 merge_table_date = ("""
 
-MERGE INTO {table} source 
-USING tempdate temp
+MERGE INTO public.dim_date AS source 
+USING public.tempdate AS temp
     ON source.date = temp.date
-
-/* new records */
 WHEN NOT MATCHED THEN
     INSERT (date, year, month, dayofweek) 
     VALUES (temp.date, temp.year, temp.month, temp.dayofweek)
-
-/* matching records ('inner match') */
 WHEN MATCHED THEN 
-    UPDATE SET year = temp.year, 
+    UPDATE SET 
+    year = temp.year, 
     month = temp.month, 
-    dayofweek = temp.dayofweek
-;
-
-/* CREATE INDEX index ON {table}(date); */
-REINDEX TABLE {table};
-
+    dayofweek = temp.dayofweek;
+                    
 """) 
 
