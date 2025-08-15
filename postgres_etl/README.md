@@ -21,7 +21,7 @@ This project implements an ETL pipeline to download financial stock data, load i
 
 A star schema design for storing historical stock price data
 
-<img src = "./images/star.png" width="60%" height="60%">
+<img src = "./images/star_v1.png" width="60%" height="60%">
 
 #### Environment Setup
 
