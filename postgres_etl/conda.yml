@@ -1,9 +1,12 @@
 name: postgres_etl
 channels:
   - defaults
+  - conda-forge
 dependencies:
-
-  - pandas=1.5.2
-  - psycopg2=2.9.3
-  - sqlalchemy=1.4.39
-  - yfinance=0.2.22
+  - python=3.11
+  - pandas
+  - psycopg2
+  - sqlalchemy
+  - pip
+  - pip:
+      - yfinance

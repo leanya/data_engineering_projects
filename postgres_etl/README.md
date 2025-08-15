@@ -5,7 +5,7 @@ This project implements an ETL pipeline to download financial stock data, load i
 1. Create Tables in PostgreSQL (create_tables_v1.py)  
 - Sets up the fact and dimension tables for storing stock data
 2. Download datasets using yfinance(etl.py)
-- For illustration purpose, AAPL and SPY tickers are downloaded
+- For illustration purpose, AAPL, SPY, and NVDA tickers are downloaded
 - Transforms and loads the data into PostgreSQL 
     - Date dimension table
     - Ticker dimension table
@@ -16,6 +16,12 @@ This project implements an ETL pipeline to download financial stock data, load i
     - Retrieve the latest date from the date dimension table (the last watermark)
     - Download dataset from the next date until today
     - Merges the new data into main tables in PostgreSQL 
+
+#### Data Model
+
+A star schema design for storing historical stock price data
+
+<img src = "./images/star.png" width="60%" height="60%">
 
 #### Environment Setup
 
@@ -41,8 +47,7 @@ To set up the project environment with the required dependencies:
     python increment_data_loading.py
     ```
 - To validate the datasets, 
-    - Run test.ipynb notebook for sanity checks
-    - Alternatively, use test_with_modules.ipynb notebook to validate using the imported python modules and check through the tables 
+    - Use test_with_modules.ipynb notebook to validate using the imported python modules and check through the tables 
 
 #### Reference
 - https://github.com/tommytracey/udacity_data_engineering/tree/master/p1_data_modeling_postgres
