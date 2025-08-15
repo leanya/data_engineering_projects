@@ -23,34 +23,36 @@ def create_database():
     return cur, conn
 
 
-def drop_tables(cur, conn, companies):
-    # table to store date dimension
-    cur.execute(sql.SQL(table_drop).format(sql.Identifier('date_dim')))
-    conn.commit()
+def drop_tables(cur, conn):
+    
+    # List of table names to drop
+    tables = ['fact_stock_price', 'dim_date', 'dim_ticker']
 
-    # tables to store stock info
-    for company in companies:
-        cur.execute(sql.SQL(table_drop).format(sql.Identifier(company.lower() )))
+    for table in tables: 
+        drop_query = sql.SQL(table_drop).format(sql.Identifier(table))
+        cur.execute(drop_query)
         conn.commit()
     
-def create_tables(cur, conn, companies):
+def create_tables(cur, conn):
     # table to store date dimension
-    cur.execute(sql.SQL(date_table_create).format(table=sql.Identifier('date_dim' )))
+    cur.execute(sql.SQL(dim_date_table_create).format(table=sql.Identifier('dim_date')))
+    conn.commit()
+    
+    # table to store ticker dimension
+    cur.execute(sql.SQL(dim_ticker_table_create).format(table=sql.Identifier('dim_ticker')))
     conn.commit()
 
-    # tables to store stock info
-    for company in companies:
-        cur.execute(sql.SQL(table_create).format(table=sql.Identifier(company.lower() ),
-                                                 date_table = sql.Identifier('date_dim'),
-                                                 constraint= sql.Identifier("stock_key_"+company) ))
-        conn.commit()
+    # table to store stock info
+    cur.execute(sql.SQL(fact_table_create).format(table=sql.Identifier('fact_stock_price'),
+                                                  date_table = sql.Identifier('dim_date'),
+                                                  ticker_table = sql.Identifier('dim_ticker') ))
+    conn.commit()
 
 def main():
     cur, conn = create_database()
-    companies = ['AAPL', "SPY"]
     
-    drop_tables(cur, conn, companies)
-    create_tables(cur, conn, companies)
+    drop_tables(cur, conn)
+    create_tables(cur, conn)
 
     conn.close()
     print("Completed creating the tables!")
