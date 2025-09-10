@@ -16,13 +16,14 @@ Airflow is installed with Docker, https://airflow.apache.org/docs/apache-airflow
 
 #### Running the pipeline
 
-- Configure the following Github secrets to automate deployment to Oracle ARM 
-| Name               | Description                                      |<br>
-|:-------------------|:-------------------------------------------------|<br>
-| `DOCKER_USER`      | Docker Hub username                              |<br>
-| `DOCKER_PASSWORD`  | Docker Hub password or access token              |<br>
-| `INSTANCE_IP`      | Public IP of the VM instance                     |<br>
-| `SSH_KEY`          | Base64-encoded **private SSH key** for VM access |<br>
+- Configure the following GitHub secrets to automate deployment:
+
+| Name               | Description                                     |
+|:------------------ |:------------------------------------------------|
+| `DOCKER_USER`      | Docker Hub username                             |
+| `DOCKER_PASSWORD`  | Docker Hub password or access token             |
+| `INSTANCE_IP`      | Public IP of the VM instance                    |
+| `SSH_KEY`          | Base64-encoded **private SSH key** for VM access |
 
 - Alternatively, run the full pipeline with the following command for local development
 ```docker
