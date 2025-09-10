@@ -1,0 +1,47 @@
+name: Deploy to Oracle VM
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        env: 
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+
+      - name: Push Docker images
+        run: docker compose -f docker-compose.yml push 
+
+      - name: copy files to target server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{secrets.EC2_INSTANCE_IP}}
+          username: ubuntu
+          key: ${{secrets.SSH_KEY}}
+          source: "init_script.sh,docker-compose.yml,dags,plugins"
+        target: "~/app"
+
+      - name: Setup and run Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.EC2_INSTANCE_IP}}
+          username: ubuntu
+          key: ${{secrets.SSH_KEY}}
+          script: |
+            cd ~/app 
+            docker compose down --remove-orphans
+            docker-compose pull
+            docker-compose up airflow-init
+            docker-compose up -d
+            docker image prune -f
